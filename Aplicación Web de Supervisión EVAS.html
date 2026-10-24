@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supervisión de Obra IA - EVAS Method</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f7ff',
+                            100: '#ebf0fe',
+                            500: '#4f46e5',
+                            600: '#4338ca',
+                            700: '#3730a3',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Inter & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-full flex flex-col antialiased">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+                <i data-lucide="hard-hat" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base tracking-tight text-white">DATAC | EVAS Vision</h1>
+                <p class="text-xs text-slate-400">Supervisión Inteligente de Obra</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span> Sistema Activo
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 overflow-y-auto p-4 max-w-2xl w-full mx-auto space-y-5 pb-12">
+
+        <!-- Welcome Banner -->
+        <section class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/60 rounded-2xl p-4 shadow-xl">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h2 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Módulo de Visión & Residencia</h2>
+                    <p class="text-lg font-bold text-white mt-0.5">Captura y Auditoría de Campo</p>
+                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">Sube o captura una imagen de los elementos constructivos para procesarla mediante el análisis multimodal y estructurarla bajo la metodología EVAS.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Capture / Upload Card -->
+        <section class="bg-slate-800/80 backdrop-blur border border-slate-700/80 rounded-2xl p-5 shadow-lg space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                    <i data-lucide="camera" class="w-4 h-4 text-indigo-400"></i> Entrada de Imagen de Obra
+                </h3>
+                <span class="text-xs text-slate-400">JPG, PNG o Cámara Directa</span>
+            </div>
+
+            <!-- Preview Area -->
+            <div id="imagePreviewContainer" class="relative w-full h-56 bg-slate-900/90 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center overflow-hidden transition-all group">
+                <div id="placeholderContent" class="text-center p-4">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 text-indigo-400 flex items-center justify-center mx-auto mb-2 shadow-inner group-hover:scale-105 transition-transform">
+                        <i data-lucide="image-plus" class="w-6 h-6"></i>
+                    </div>
+                    <p class="text-xs font-medium text-slate-300">Toca para capturar con la cámara o selecciona un archivo</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Soporta dispositivos móviles y PC</p>
+                </div>
+                <img id="uploadedImagePreview" src="" alt="Vista previa de obra" class="hidden absolute inset-0 w-full h-full object-cover">
+                <!-- Live Video Element for Camera Feed if needed -->
+                <video id="cameraVideo" autoplay playsinline class="hidden absolute inset-0 w-full h-full object-cover"></video>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm border border-slate-600">
+                    <i data-lucide="upload" class="w-4 h-4 text-indigo-400"></i> Subir Archivo
+                    <input type="file" id="fileInput" accept="image/*" class="hidden">
+                </label>
+                <button id="btnOpenCamera" onclick="toggleCamera()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm border border-slate-600">
+                    <i data-lucide="video" class="w-4 h-4 text-emerald-400"></i> Usar Cámara
+                </button>
+            </div>
+            
+            <!-- Snapshot trigger if camera is open -->
+            <button id="btnSnapPhoto" onclick="takeSnapshot()" class="hidden w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30">
+                <i data-lucide="aperture" class="w-4 h-4"></i> Capturar Fotografía Actual
+            </button>
+
+            <!-- Analyze Trigger -->
+            <button id="btnAnalyze" onclick="simulateAIAnalysis()" disabled class="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/30">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Analizar con IA (Metodología EVAS)
+            </button>
+        </section>
+
+        <!-- Loading State Spinner -->
+        <div id="loadingState" class="hidden bg-slate-800/90 border border-slate-700 rounded-2xl p-6 text-center space-y-3 animate-pulse">
+            <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-xs font-semibold text-indigo-300">Procesando imagen con modelo multimodal Gemini...</p>
+            <p class="text-[10px] text-slate-400">Aplicando filtros de visión artificial, detección de elementos y criterio de auditoría.</p>
+        </div>
+
+        <!-- Results EVAS Card Section -->
+        <section id="resultsSection" class="hidden space-y-4">
+            
+            <!-- Header Card -->
+            <div class="bg-gradient-to-r from-indigo-900/60 to-slate-800 border border-indigo-500/30 rounded-2xl p-4 flex items-center justify-between shadow-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-500 p-2.5 rounded-xl text-white">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Reporte Técnico Generado</h4>
+                        <p class="text-sm font-bold text-white">Folio: OBRA-2026-EVAS-04</p>
+                    </div>
+                </div>
+                <button onclick="generatePDFReport()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium py-2 px-3 rounded-xl border border-slate-600 flex items-center gap-1.5 transition-all">
+                    <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-400"></i> Exportar Reporte
+                </button>
+            </div>
+
+            <!-- EVAS Methodology Breakdown Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                
+                <!-- 1. ENTENDER -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-2 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">1. ENTENDER</span>
+                        <i data-lucide="search" class="w-4 h-4 text-blue-400"></i>
+                    </div>
+                    <h5 class="text-xs font-semibold text-white">Contexto e Identificación</h5>
+                    <p id="txtEntender" class="text-xs text-slate-300 leading-relaxed">Análisis preliminar de la partida visualizada en campo (Estructura de mampostería / Colado de elementos).</p>
+                </div>
+
+                <!-- 2. VISUALIZAR -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-2 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">2. VISUALIZAR</span>
+                        <i data-lucide="eye" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <h5 class="text-xs font-semibold text-white">Elementos Detectados</h5>
+                    <p id="txtVisualizar" class="text-xs text-slate-300 leading-relaxed">Reconocimiento geométrico, presencia de armados de acero, cimbra y niveles de plomeo.</p>
+                </div>
+
+                <!-- 3. ANALIZAR -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-2 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">3. ANALIZAR</span>
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-400"></i>
+                    </div>
+                    <h5 class="text-xs font-semibold text-white">Estimación & Desviaciones</h5>
+                    <p id="txtAnalizar" class="text-xs text-slate-300 leading-relaxed">Avance físico estimado: 78%. Comparativa con programa de obra: En tiempo, sin desviaciones críticas de costos.</p>
+                </div>
+
+                <!-- 4. SUPERVISAR -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-2 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">4. SUPERVISAR</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                    </div>
+                    <h5 class="text-xs font-semibold text-white">Criterio de Auditoría & Bitácora</h5>
+                    <p id="txtSupervisar" class="text-xs text-slate-300 leading-relaxed">Validación profesional requerida. Se observa cumplimiento de EPP básico en personal de campo.</p>
+                </div>
+
+            </div>
+
+            <!-- Professional Disclaimer Note -->
+            <div class="bg-slate-900/60 border border-slate-700/80 rounded-xl p-3 text-[11px] text-slate-400 flex items-start space-x-2">
+                <i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                <p><strong>Nota del Mtro. Arq. David Torres Mendoza:</strong> La inteligencia artificial actúa como apoyo auxiliar y de procesamiento rápido. El criterio, la validación final en bitácora y la responsabilidad técnica recaen en el residente de obra.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Custom Message Box Overlay -->
+    <div id="msgModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center space-x-3 text-indigo-400">
+                <i data-lucide="info" class="w-6 h-6"></i>
+                <h4 id="msgTitle" class="font-bold text-white text-sm">Aviso Importante</h4>
+            </div>
+            <p id="msgBody" class="text-xs text-slate-300 leading-relaxed"></p>
+            <button onclick="closeMsg()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-xl text-xs transition-all">Entendido</button>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        let cameraStream = null;
+        let isCameraActive = false;
+        let hasImageLoaded = false;
+
+        const fileInput = document.getElementById('fileInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const placeholderContent = document.getElementById('placeholderContent');
+        const uploadedImagePreview = document.getElementById('uploadedImagePreview');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const btnSnapPhoto = document.getElementById('btnSnapPhoto');
+        const btnAnalyze = document.getElementById('btnAnalyze');
+        const loadingState = document.getElementById('loadingState');
+        const resultsSection = document.getElementById('resultsSection');
+
+        // Handle File Upload
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                stopCamera();
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    uploadedImagePreview.src = evt.target.result;
+                    uploadedImagePreview.classList.remove('hidden');
+                    placeholderContent.classList.add('hidden');
+                    hasImageLoaded = true;
+                    btnAnalyze.disabled = false;
+                    resultsSection.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Toggle Camera Feed
+        async function toggleCamera() {
+            if (isCameraActive) {
+                stopCamera();
+            } else {
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                        audio: false 
+                    });
+                    cameraVideo.srcObject = cameraStream;
+                    cameraVideo.classList.remove('hidden');
+                    placeholderContent.classList.add('hidden');
+                    uploadedImagePreview.classList.add('hidden');
+                    btnSnapPhoto.classList.remove('hidden');
+                    document.getElementById('btnOpenCamera').innerHTML = `<i data-lucide="video-off" class="w-4 h-4 text-rose-400"></i> Cerrar Cámara`;
+                    lucide.createIcons();
+                    isCameraActive = true;
+                    resultsSection.classList.add('hidden');
+                } catch (err) {
+                    showMsg("Acceso a Cámara", "No se pudo acceder a la cámara del dispositivo. Por favor verifica los permisos o utiliza la opción de subir archivo.");
+                }
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            cameraVideo.classList.add('hidden');
+            btnSnapPhoto.classList.add('hidden');
+            document.getElementById('btnOpenCamera').innerHTML = `<i data-lucide="video" class="w-4 h-4 text-emerald-400"></i> Usar Cámara`;
+            lucide.createIcons();
+            isCameraActive = false;
+        }
+
+        // Take Snapshot from Video
+        function takeSnapshot() {
+            if (!cameraStream) return;
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraVideo.videoWidth || 1280;
+            canvas.height = cameraVideo.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            uploadedImagePreview.src = dataUrl;
+            uploadedImagePreview.classList.remove('hidden');
+            
+            stopCamera();
+            hasImageLoaded = true;
+            btnAnalyze.disabled = false;
+            showMsg("Captura Exitosa", "La fotografía de obra ha sido capturada correctamente y está lista para el análisis multimodal de IA.");
+        }
+
+        // Simulate AI Analysis with EVAS
+        function simulateAIAnalysis() {
+            if (!hasImageLoaded && !uploadedImagePreview.src) {
+                showMsg("Aviso", "Por favor captura o sube una imagen primero.");
+                return;
+            }
+
+            loadingState.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            btnAnalyze.disabled = true;
+
+            setTimeout(() => {
+                loadingState.classList.add('hidden');
+                resultsSection.classList.remove('hidden');
+                btnAnalyze.disabled = false;
+                
+                // Scroll to results smoothly
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }, 1800);
+        }
+
+        // Export Report placeholder
+        function generatePDFReport() {
+            showMsg("Exportación de Reporte", "El reporte técnico estructurado bajo la metodología EVAS ha sido exportado exitosamente en formato digital para su integración en la bitácora de obra.");
+        }
+
+        // Custom Message Box
+        function showMsg(title, text) {
+            document.getElementById('msgTitle').innerText = title;
+            document.getElementById('msgBody').innerText = text;
+            document.getElementById('msgModal').classList.remove('hidden');
+        }
+
+        function closeMsg() {
+            document.getElementById('msgModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
